@@ -23,9 +23,9 @@ around create_match => sub {
    $cfg->{boats} //= {
       due => [ qw< 0:0 1:0 > ],
       tre_1 => [ qw< 0:0 1:0 2:0 > ],
-#      tre_2 => [ qw< 0:0 0:1 0:2 > ],
-#      quattro => [ qw< 0:0 0:1 0:2 0:3 > ],
-#      cinque => [ qw< 0:0 0:1 0:2 0:3 0:4 > ],
+      tre_2 => [ qw< 0:0 1:0 2:0 > ],
+      quattro => [ qw< 0:0 1:0 2:0 3:0 > ],
+      cinque => [ qw< 0:0 1:0 2:0 3:0 4:0 > ],
    };
    $cfg->{'multiple-turns'} = 1;
    $params{configuration} = $cfg;
