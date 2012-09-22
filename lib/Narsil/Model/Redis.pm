@@ -32,7 +32,7 @@ sub create {
    my $package = shift;
    my %params = ref($_[0]) ? %{$_[0]} : @_;
    my $self = $package->new(redis => "$params{host}:$params{port}");
-   $self->auth($params{password}) if exists $params{password};
+   $self->redis()->auth($params{password}) if exists $params{password};
    return $self;
 }
 
