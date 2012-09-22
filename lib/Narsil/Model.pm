@@ -62,6 +62,11 @@ sub locked_execute {
    return $retval;
 }
 
+sub create {
+   my $package = shift;
+   return $package->new(@_); # default implementation
+}
+
 1;
 __END__
 

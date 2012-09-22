@@ -28,6 +28,12 @@ has redis => (
    },
 );
 
+sub create {
+   my $package = shift;
+   my %params = ref($_[0]) ? %{$_[0]} : @_;
+   return $package->new(redis => "$params{host}:$params{port}");
+}
+
 sub raw_get {
    my ($self, $type, $id) = @_;
    Dancer::warning("getting $type:$id");
