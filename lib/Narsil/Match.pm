@@ -34,33 +34,56 @@ has _participants =>
   (is => 'rw', builder => 'BUILD_participants', lazy => 1);
 has _invited => (is => 'rw', builder => 'BUILD_invited', lazy => 1);
 has _winners => (is => 'rw', builder => 'BUILD_winners', lazy => 1);
-has _join_ids => (is => 'rw', builder => 'BUILD_joins', lazy => 1, trigger => sub { $_[0]->clear_cache_joins() });
-has _cache_joins => (is => 'rw', builder => 'BUILD_cache_joins', lazy => 1, clearer => 'clear_cache_joins');
+has _join_ids => (
+   is      => 'rw',
+   builder => 'BUILD_joins',
+   lazy    => 1,
+   trigger => sub { $_[0]->clear_cache_joins() }
+);
+has _cache_joins => (
+   is      => 'rw',
+   builder => 'BUILD_cache_joins',
+   lazy    => 1,
+   clearer => 'clear_cache_joins'
+);
 
 # Opaque, game-specific data
 has configuration =>
   (is => 'rw', builder => 'BUILD_configuration', lazy => 1);
 has status => (is => 'rw', builder => 'BUILD_status', lazy => 1);
-has _move_ids => (is => 'rw', builder => 'BUILD_moves', lazy => 1, trigger => sub { $_[0]->clear_cache_moves() });
-has _cache_moves => (is => 'rw', builder => 'BUILD_cache_moves', lazy => 1, clearer => 'clear_cache_moves');
-has origin => (is => 'rw', lazy => 1, predicate => 'has_origin', weak_ref => 1);
+has _move_ids => (
+   is      => 'rw',
+   builder => 'BUILD_moves',
+   lazy    => 1,
+   trigger => sub { $_[0]->clear_cache_moves() }
+);
+has _cache_moves => (
+   is      => 'rw',
+   builder => 'BUILD_cache_moves',
+   lazy    => 1,
+   clearer => 'clear_cache_moves'
+);
+has origin =>
+  (is => 'rw', lazy => 1, predicate => 'has_origin', weak_ref => 1);
 
-sub BUILD_phase         { return 'pending' }
-sub BUILD_participants  { return [] }
-sub BUILD_invited       { return {} }
-sub BUILD_winners       { return [] }
-sub BUILD_joins         { return [] }
+sub BUILD_phase        { return 'pending' }
+sub BUILD_participants { return [] }
+sub BUILD_invited      { return {} }
+sub BUILD_winners      { return [] }
+sub BUILD_joins        { return [] }
+
 sub BUILD_cache_joins {
    my ($self) = @_;
    my $model = $self->model();
-   return [ map { $model->get_join($_) } $self->join_ids() ];
-}
-sub BUILD_moves         { return [] }
+   return [map { $model->get_join($_) } $self->join_ids()];
+} ## end sub BUILD_cache_joins
+sub BUILD_moves { return [] }
+
 sub BUILD_cache_moves {
    my ($self) = @_;
    my $model = $self->model();
-   return [ map { $model->get_move($_) } $self->move_ids() ];
-}
+   return [map { $model->get_move($_) } $self->move_ids()];
+} ## end sub BUILD_cache_moves
 sub BUILD_configuration { return undef }
 sub BUILD_status        { return undef }
 
@@ -77,7 +100,7 @@ sub join_ids {
 
 sub joins {
    my $self = shift;
-   $self->join_ids([ map {$_->id()} @_]) if @_;
+   $self->join_ids([map { $_->id() } @_]) if @_;
    return @{$self->_cache_joins()};
 }
 
@@ -86,7 +109,7 @@ sub add_join {
    push @{$self->_join_ids()}, $join->id();
    $self->clear_cache_joins();
    return $self;
-}
+} ## end sub add_join
 
 sub move_ids {
    my $self = shift;
@@ -96,7 +119,7 @@ sub move_ids {
 
 sub moves {
    my $self = shift;
-   $self->_move_ids([map {$_->id()} @_]) if @_;
+   $self->_move_ids([map { $_->id() } @_]) if @_;
    return @{$self->_cache_moves()};
 }
 
@@ -105,15 +128,16 @@ sub add_move {
    push @{$self->_move_ids()}, $move->id();
    $self->clear_cache_moves();
    return $self;
-}
+} ## end sub add_move
 
 sub plain {
-   my $self   = shift;
-   my @fields = qw< id gameid phase creator configuration status _participants _invited _winners _join_ids _move_ids >;
+   my $self = shift;
+   my @fields =
+     qw< id gameid phase creator configuration status _participants _invited _winners _join_ids _move_ids >;
    my %retval = map { $_ => $self->$_() } @fields;
    return %retval if wantarray();
    return \%retval;
-} ## end sub to_hash
+} ## end sub plain
 
 sub _flagify {
    map { $_ => 1 } @_;
@@ -122,7 +146,7 @@ sub _flagify {
 sub participants {
    my $self = shift;
    my $p    = $self->_participants();
-   @$p = [ @_ ] if @_;
+   @$p = [@_] if @_;
    return @$p;
 } ## end sub participants
 
@@ -156,10 +180,10 @@ sub is_invited {
 
 sub winners {
    my $self = shift;
-   my $p = $self->_winners();
+   my $p    = $self->_winners();
    @$p = @_ if @_;
    return @$p;
-}
+} ## end sub winners
 
 sub game {
    my $self = shift;
@@ -223,6 +247,5 @@ sub move {
    # now try to use it
    return $self->game()->move($self, $move);
 } ## end sub move
-
 
 1;
