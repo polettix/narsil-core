@@ -28,7 +28,7 @@ around create_match => sub {
       quattro => [qw< 0:0 1:0 2:0 3:0 >],
       cinque  => [qw< 0:0 1:0 2:0 3:0 4:0 >],
    };
-   $cfg->{'multiple-turns'} = 1;
+   $cfg->{'multiple-turns'} //= 1;
    $params{configuration}   = $cfg;
    $params{status}          = $self->inflate(
       field_size_x   => $cfg->{size},
