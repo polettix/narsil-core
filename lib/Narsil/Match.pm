@@ -6,7 +6,7 @@ use Moo;
 use Narsil::Move;
 use Narsil::Join;
 use 5.012;
-use List::MoreUtils qw< any >;
+use List::MoreUtils qw< any first_index >;
 
 extends 'Narsil::Object';
 
@@ -33,6 +33,7 @@ has creator => (is => 'ro', required => 1);
 has _participants =>
   (is => 'rw', builder => 'BUILD_participants', lazy => 1);
 has _invited => (is => 'rw', builder => 'BUILD_invited', lazy => 1);
+has _movers => (is => 'rw', builder => 'BUILD_movers', lazy => 1);
 has _winners => (is => 'rw', builder => 'BUILD_winners', lazy => 1);
 has _join_ids => (
    is      => 'rw',
@@ -69,6 +70,7 @@ has origin =>
 sub BUILD_phase        { return 'pending' }
 sub BUILD_participants { return [] }
 sub BUILD_invited      { return {} }
+sub BUILD_movers       { return [] }
 sub BUILD_winners      { return [] }
 sub BUILD_joins        { return [] }
 
@@ -133,7 +135,8 @@ sub add_move {
 sub plain {
    my $self = shift;
    my @fields =
-     qw< id gameid phase creator configuration status _participants _invited _winners _join_ids _move_ids >;
+     qw< id gameid phase creator configuration status _participants
+     _invited _movers _winners _join_ids _move_ids >;
    my %retval = map { $_ => $self->$_() } @fields;
    return %retval if wantarray();
    return \%retval;
@@ -162,6 +165,19 @@ sub is_participant {
    return any { $_ eq $id } $self->participants();
 }
 
+sub opponents {
+   my ($self, $userid) = @_;
+   return grep { $_ ne $userid } $self->participants();
+}
+
+sub opponent {
+   my ($self, $userid) = @_;
+   my @opponents = $self->opponents($userid);
+   die { reason => 'wrong number of players' }
+      if @opponents != 1;
+   return $opponents[0];
+}
+
 sub invited {
    my $self = shift;
    my $p    = $self->_invited();
@@ -177,6 +193,62 @@ sub is_invited {
    my $id = ref $user ? $user->id() : $user;
    return exists $invited->{$id};
 } ## end sub is_invited
+
+sub movers {
+   my $self = shift;
+   my $p = $self->_movers();
+   @$p = @_ if @_;
+   return @$p;
+}
+
+sub set_movers {
+   my $self = shift;
+   @{$self->_movers()} = @_;
+   return $self->movers();
+}
+
+sub waiters {
+   my $self = shift;
+   my %is_mover = map { $_ => 1 } $self->movers();
+   return grep { ! exists $is_mover{$_} } $self->participants();
+}
+
+sub is_mover {
+   my ($self, $userid) = @_;
+   return any { $_ eq $userid } $self->movers();
+}
+
+sub next_waiter {
+   my $self = shift;
+   my ($current, @rest) = $self->movers();
+   die "multiple movers, next_waiter() is not supported"
+      if @rest > 0;
+   my @participants = $self->participants();
+   return $participants[0] unless defined $current;
+   my $index = first_index { $_ eq $current } @participants;
+   die "invalid state, mover $current is not a participant"
+      if $index < 0;
+   $index = 0 if ++$index > $#participants;
+   return $participants[$index];
+}
+
+sub to_next_waiter {
+   my $self = shift;
+   $self->movers($self->next_waiter());
+   return $self;
+}
+
+sub add_mover {
+   my ($self, $userid) = @_;
+   $self->movers($self->movers(), $userid);
+   return $self;
+}
+
+sub remove_mover {
+   my ($self, $userid) = @_;
+   $self->set_movers(grep { $_ ne $userid } $self->movers());
+   return $self;
+}
 
 sub winners {
    my $self = shift;

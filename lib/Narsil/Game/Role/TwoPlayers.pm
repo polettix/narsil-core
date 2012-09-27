@@ -22,9 +22,6 @@ sub calculate_join_application {
       my @participants = $match->participants();
       if (scalar(@participants) == 2) {
          $match->phase('active');
-         my $status = $self->inflate($match->status());
-         $status->players([@participants]);
-         $match->status($status->plain());
       } ## end if (scalar(@participants...
    } ## end if (!$match->is_participant...
    

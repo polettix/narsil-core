@@ -26,10 +26,10 @@ sub validate {
    die {reason => 'match is not active'}
      unless $match->is_active();
 
-   my $status = $self->inflate($match->status());
    die {reason => "not user's turn"}
-     unless $status->is_current_player($userid);
+     unless $match->is_mover($userid);
 
+   my $status = $self->inflate($match->status());
    die {reason => 'move out of sync'}
      unless $status->equivalent_to($move->match_status_before());
 
