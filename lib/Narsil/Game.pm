@@ -107,8 +107,27 @@ sub calculate_move_application {
    die 'unimplemented';
 }
 
+sub allowed_number_of_users {
+   return 2;
+}
+
 sub calculate_join_application {
    my ($self, $match, $join) = @_;
+
+   die {reason => 'not accepting players'}
+     unless $match->is_gathering();
+
+   my $userid = $join->userid();
+   if (!$match->is_participant($userid)) {
+      $match->add_participant($userid);
+      my @participants = $match->participants();
+      if (scalar(@participants) == $self->allowed_number_of_users()) {
+         $match->phase('active');
+         $match->add_mover($participants[rand @participants]);
+      } ## end if (scalar(@participants...
+   } ## end if (!$match->is_participant...
+
+   return $match;
    die 'unimplemented';
 }
 
