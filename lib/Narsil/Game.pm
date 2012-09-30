@@ -7,6 +7,7 @@ use English qw( -no_match_vars );
 use Try::Tiny;
 use Moo;
 use 5.012;
+use List::Util qw< shuffle >;
 
 extends 'Narsil::Object';
 
@@ -123,7 +124,8 @@ sub calculate_join_application {
       my @participants = $match->participants();
       if (scalar(@participants) == $self->allowed_number_of_users()) {
          $match->phase('active');
-         $match->add_mover($participants[rand @participants]);
+         $match->participants(@participants = shuffle @participants);
+         $match->add_mover($participants[0]);
       } ## end if (scalar(@participants...
    } ## end if (!$match->is_participant...
 
