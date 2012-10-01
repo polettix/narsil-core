@@ -149,9 +149,15 @@ sub _flagify {
 sub participants {
    my $self = shift;
    my $p    = $self->_participants();
-   @$p = [@_] if @_;
+   @$p = @_ if @_;
    return @$p;
 } ## end sub participants
+
+sub set_participants {
+   my $self = shift;
+   @{$self->_participants()} = @_;
+   return $self;
+}
 
 sub add_participant {
    my ($self, $userid) = @_;
