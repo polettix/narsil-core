@@ -143,8 +143,12 @@ sub matches_id_for {
 
 sub games {
    my ($self) = @_;
-   return map {
-      $self->get_game($_)
+   return grep { defined $_ } map {
+      my $game;
+      try {
+         $game = $self->get_game($_)
+      };
+      $game;
    } $self->redis()->smembers('games');
 } ## end sub games
 
